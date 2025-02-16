@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compatibilidad de Grupos Sanguíneos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Compatibilidad de Grupos Sanguíneos</h1>
+    <select id="bloodType">
+        <option value="">Selecciona tu grupo sanguíneo</option>
+        <option value="A+">A+</option>
+        <option value="A-">A-</option>
+        <option value="B+">B+</option>
+        <option value="B-">B-</option>
+        <option value="AB+">AB+</option>
+        <option value="AB-">AB-</option>
+        <option value="O+">O+</option>
+        <option value="O-">O-</option>
+    </select>
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+    const bloodTypeSelector = document.getElementById('bloodType');
+    const resultDiv = document.getElementById('result');
+
+    const compatibility = {
+        'A+': { receive: ['A+', 'A-', 'O+', 'O-'], donate: ['A+', 'AB+'] },
+        'A-': { receive: ['A-', 'O-'], donate: ['A+', 'A-', 'AB+', 'AB-'] },
+        'B+': { receive: ['B+', 'B-', 'O+', 'O-'], donate: ['B+', 'AB+'] },
+        'B-': { receive: ['B-', 'O-'], donate: ['B+', 'B-', 'AB+', 'AB-'] },
+        'AB+': { receive: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'], donate: ['AB+'] },
+        'AB-': { receive: ['A-', 'B-', 'AB-', 'O-'], donate: ['AB+', 'AB-'] },
+        'O+': { receive: ['O+', 'O-'], donate: ['A+', 'B+', 'AB+', 'O+'] },
+        'O-': { receive: ['O-'], donate: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] }
+    };
+
+    bloodTypeSelector.addEventListener('change', (event) => {
+        const selectedBloodType = event.target.value;
+        if (selectedBloodType) {
+            const { receive, donate } = compatibility[selectedBloodType];
+            resultDiv.innerHTML = `
+                <p>Puedes recibir sangre de: <strong>${receive.join(', ')}</strong></p>
+                <p>Puedes donar sangre a: <strong>${donate.join(', ')}</strong></p>
+            `;
+        } else {
+            resultDiv.innerHTML = '';
+        }
+    });
+</script>
+
+</body>
+</html>
