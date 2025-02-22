@@ -342,6 +342,33 @@
     </div>
 </div>
 
+<!-- FUNCIÓN TIROIDEA -->
+<div class="seccion">
+    <h2>Función Tiroidea</h2>
+    <div class="grid">
+        <div>
+            <label>TSH (μIU/mL): <input type="number" step="0.01" id="tsh" min="0.01" max="100"></label>
+            <div class="info-examen">Hormona estimulante de la tiroides</div>
+        </div>
+        <div>
+            <label>T4 Libre (ng/dL): <input type="number" step="0.1" id="t4libre" min="0.1" max="10"></label>
+            <div class="info-examen">Tiroxina libre</div>
+        </div>
+        <div>
+            <label>T3 Libre (pg/mL): <input type="number" step="0.1" id="t3libre" min="0.1" max="10"></label>
+            <div class="info-examen">Triyodotironina libre</div>
+        </div>
+        <div>
+            <label>Anticuerpos Anti-TPO (IU/mL): <input type="number" id="antiTPO" min="0" max="1000"></label>
+            <div class="info-examen">Anticuerpos contra la peroxidasa tiroidea</div>
+        </div>
+        <div>
+            <label>Anticuerpos Anti-TG (IU/mL): <input type="number" id="antiTG" min="0" max="1000"></label>
+            <div class="info-examen">Anticuerpos contra la tiroglobulina</div>
+        </div>
+    </div>
+</div>
+
 <button onclick="generarInformeCompleto()">Generar Informe Integral</button>
 
 <!-- SECCIÓN DE INFORME -->
@@ -381,7 +408,12 @@ const Referencias = {
         troponina: [0, 0.04],
         bnp: edad < 75 ? [0, 100] : [0, 250],
         lipoproteinaA: [0, 30],
-        pcr: [0, 3.0]
+        pcr: [0, 3.0],
+        tsh: [0.4, 4.0],
+        t4libre: [0.8, 1.8],
+        t3libre: [2.0, 4.4],
+        antiTPO: [0, 34],
+        antiTG: [0, 115]
     }),
     derivados: {
         imc: [18.5, 24.9],
@@ -412,6 +444,18 @@ const Referencias = {
         },
         troponina: {
             alto: ['Infarto agudo de miocardio', 'Miocarditis', 'Embolia pulmonar']
+        },
+        tsh: {
+            alto: ['Hipotiroidismo', 'Tiroiditis de Hashimoto'],
+            bajo: ['Hipertiroidismo', 'Enfermedad de Graves']
+        },
+        t4libre: {
+            alto: ['Hipertiroidismo', 'Toxicidad por T4'],
+            bajo: ['Hipotiroidismo', 'Deficiencia de yodo']
+        },
+        t3libre: {
+            alto: ['Hipertiroidismo', 'Toxicidad por T3'],
+            bajo: ['Hipotiroidismo', 'Enfermedad crónica']
         }
     }
 };
@@ -450,6 +494,8 @@ function generarAlertas(datos, calculos) {
     if(calculos.imc >= 30) alertas.push({tipo: 'Metabólica', nivel: 'alerta', mensaje: `Obesidad (IMC ${calculos.imc.toFixed(1)}). Evaluación nutricional urgente.`});
     if(datos.bnp > 500) alertas.push({tipo: 'Cardíaca', nivel: 'critico', mensaje: 'BNP elevado (>500 pg/mL). Posible insuficiencia cardíaca.'});
     if(datos.potasio > 5.5) alertas.push({tipo: 'Electrolitos', nivel: 'critico', mensaje: 'Hiperpotasemia. Riesgo de arritmia cardíaca.'});
+    if(datos.tsh > 4.0) alertas.push({tipo: 'Tiroidea', nivel: 'alerta', mensaje: 'TSH elevada (>4.0 μIU/mL). Sospecha de hipotiroidismo.'});
+    if(datos.tsh < 0.4) alertas.push({tipo: 'Tiroidea', nivel: 'alerta', mensaje: 'TSH baja (<0.4 μIU/mL). Sospecha de hipertiroidismo.'});
     return alertas;
 }
 
@@ -483,6 +529,36 @@ function detectarEnfermedades(datos, ref) {
             enfermedades: Referencias.enfermedades.ldl.alto
         });
     }
+
+    if(datos.tsh && (datos.tsh < ref.tsh[0] || datos.tsh > ref.tsh[1])) {
+        enfermedades.push({
+            parametro: 'TSH',
+            valor: datos.tsh,
+            enfermedades: datos.tsh < ref.tsh[0] 
+                ? Referencias.enfermedades.tsh.bajo 
+                : Referencias.enfermedades.tsh.alto
+        });
+    }
+
+    if(datos.t4libre && (datos.t4libre < ref.t4libre[0] || datos.t4libre > ref.t4libre[1])) {
+        enfermedades.push({
+            parametro: 'T4 Libre',
+            valor: datos.t4libre,
+            enfermedades: datos.t4libre < ref.t4libre[0] 
+                ? Referencias.enfermedades.t4libre.bajo 
+                : Referencias.enfermedades.t4libre.alto
+        });
+    }
+
+    if(datos.t3libre && (datos.t3libre < ref.t3libre[0] || datos.t3libre > ref.t3libre[1])) {
+        enfermedades.push({
+            parametro: 'T3 Libre',
+            valor: datos.t3libre,
+            enfermedades: datos.t3libre < ref.t3libre[0] 
+                ? Referencias.enfermedades.t3libre.bajo 
+                : Referencias.enfermedades.t3libre.alto
+        });
+    }
     
     return enfermedades;
 }
@@ -512,6 +588,7 @@ function mostrarResultados(datos, ref) {
         {id: 'plaquetas', nombre: 'Plaquetas', unidad: 'x10³/μL'},
         {id: 'glucosa', nombre: 'Glucosa', unidad: 'mg/dL'},
         {id: 'hba1c', nombre: 'HbA1c', unidad: '%'},
+        {id: 'colesterol', nombre: 'Colesterol Total', unidad: 'mg/dL'},
         {id: 'ldl', nombre: 'LDL', unidad: 'mg/dL'},
         {id: 'hdl', nombre: 'HDL', unidad: 'mg/dL'},
         {id: 'trigliceridos', nombre: 'Triglicéridos', unidad: 'mg/dL'},
@@ -520,7 +597,10 @@ function mostrarResultados(datos, ref) {
         {id: 'potasio', nombre: 'Potasio', unidad: 'mEq/L'},
         {id: 'troponina', nombre: 'Troponina', unidad: 'ng/mL'},
         {id: 'bnp', nombre: 'BNP', unidad: 'pg/mL'},
-        {id: 'pcr', nombre: 'PCR', unidad: 'mg/L'}
+        {id: 'pcr', nombre: 'PCR', unidad: 'mg/L'},
+        {id: 'tsh', nombre: 'TSH', unidad: 'μIU/mL'},
+        {id: 't4libre', nombre: 'T4 Libre', unidad: 'ng/dL'},
+        {id: 't3libre', nombre: 'T3 Libre', unidad: 'pg/mL'}
     ];
     
     parametros.forEach(p => {
@@ -606,6 +686,16 @@ function mostrarRecomendaciones(datos, ref, calculos) {
         html += '<li>Monitorización cardíaca continua</li>';
         html += '<li>Considerar quelantes de potasio</li>';
     }
+
+    if(datos.tsh > 4.0) {
+        html += '<li>Evaluación de función tiroidea</li>';
+        html += '<li>Considerar terapia con levotiroxina</li>';
+    }
+
+    if(datos.tsh < 0.4) {
+        html += '<li>Evaluación de función tiroidea</li>';
+        html += '<li>Considerar terapia antitiroidea</li>';
+    }
     
     html += '</ul>';
     document.getElementById('recomendaciones').innerHTML = html;
@@ -674,7 +764,12 @@ function obtenerDatosFormulario() {
         troponina: parseFloat(document.getElementById('troponina').value),
         ckmb: parseFloat(document.getElementById('ckmb').value),
         bnp: parseFloat(document.getElementById('bnp').value),
-        pcr: parseFloat(document.getElementById('pcr').value)
+        pcr: parseFloat(document.getElementById('pcr').value),
+        tsh: parseFloat(document.getElementById('tsh').value),
+        t4libre: parseFloat(document.getElementById('t4libre').value),
+        t3libre: parseFloat(document.getElementById('t3libre').value),
+        antiTPO: parseFloat(document.getElementById('antiTPO').value),
+        antiTG: parseFloat(document.getElementById('antiTG').value)
     };
 }
 
