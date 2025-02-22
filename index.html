@@ -1,88 +1,698 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compatibilidad de Grupos Sanguíneos</title>
+    <title>Sistema Cardio-Metabólico Profesional Plus</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+        :root {
+            --normal: #27ae60;
+            --alerta: #f1c40f;
+            --critico: #e74c3c;
+            --info: #3498db;
+            --texto: #2c3e50;
+            --fondo: #f8f9fa;
         }
-        .container {
-            background-color: #fff;
-            padding: 20px;
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            margin: 2rem; 
+            color: var(--texto);
+            line-height: 1.6;
+            background-color: var(--fondo);
+        }
+        .seccion { 
+            background: #fff; 
+            padding: 2rem; 
+            margin: 2rem 0; 
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
+            transition: transform 0.3s ease;
+        }
+        .seccion:hover {
+            transform: translateY(-3px);
+        }
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        input, select { 
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            width: 100%;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus {
+            border-color: var(--info);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
+        }
+        input:invalid {
+            border-color: var(--critico);
+            animation: shake 0.4s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        button { 
+            background: linear-gradient(135deg, var(--info), #2980b9);
+            color: white; 
+            padding: 1.2rem 3rem;
+            font-size: 1.1rem;
+            border: none;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: block;
+            width: 100%;
+            max-width: 400px;
+            margin: 2rem auto;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52,152,219,0.4);
+        }
+        .resultado { 
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 5px solid;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+        .normal { border-color: var(--normal); background: #e8f6f3; }
+        .alerta { border-color: var(--alerta); background: #fcf3cf; }
+        .critico { border-color: var(--critico); background: #fadbd8; }
+        .derivado { border-color: var(--info); background: #e3f2fd; }
+        h2 { color: var(--info); margin-bottom: 1.5rem; }
+        h3 { color: var(--texto); margin: 2rem 0 1rem; }
+        .info-examen {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 0.3rem;
+            font-style: italic;
+        }
+        .progreso {
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .progreso-barra {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        .enfermedad {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: #fff5f5;
+            border-radius: 8px;
+            border-left: 4px solid var(--critico);
+        }
+        .exportar {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        .tooltip {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dotted var(--info);
+        }
+        .tooltip-text {
+            visibility: hidden;
+            width: 300px;
+            background-color: var(--texto);
+            color: #fff;
             text-align: center;
+            border-radius: 6px;
+            padding: 1rem;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -150px;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
-        h1 {
-            margin-bottom: 20px;
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
         }
-        select {
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            margin-bottom: 20px;
-        }
-        .result {
-            margin-top: 20px;
-            font-size: 18px;
+        .cv-riesgo {
+            padding: 1rem;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 1rem 0;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Compatibilidad de Grupos Sanguíneos</h1>
-    <select id="bloodType">
-        <option value="">Selecciona tu grupo sanguíneo</option>
-        <option value="A+">A+</option>
-        <option value="A-">A-</option>
-        <option value="B+">B+</option>
-        <option value="B-">B-</option>
-        <option value="AB+">AB+</option>
-        <option value="AB-">AB-</option>
-        <option value="O+">O+</option>
-        <option value="O-">O-</option>
-    </select>
-    <div class="result" id="result"></div>
+<!-- SECCIÓN DE DATOS DEL PACIENTE -->
+<div class="seccion">
+    <h2>Datos del Paciente</h2>
+    <div class="grid">
+        <div>
+            <label>Edad (años): <input type="number" id="edad" required min="1" max="120"></label>
+            <div class="info-examen">Indica la edad cronológica del paciente</div>
+        </div>
+        <div>
+            <label>Sexo: <select id="sexo" required><option value="M">Masculino</option><option value="F">Femenino</option></select></label>
+            <div class="info-examen">Factor biológico que influye en los valores de referencia</div>
+        </div>
+        <div>
+            <label>Peso (kg): <input type="number" id="peso" step="0.1" required min="2" max="300"></label>
+            <div class="info-examen">Masa corporal en kilogramos</div>
+        </div>
+        <div>
+            <label>Altura (cm): <input type="number" id="altura" required min="50" max="250"></label>
+            <div class="info-examen">Estatura en centímetros para cálculos antropométricos</div>
+        </div>
+        <div>
+            <label>Fumador: <select id="fumador"><option value="0">No</option><option value="1">Ex-fumador</option><option value="2">Sí</option></select></label>
+            <div class="info-examen">Factor de riesgo cardiovascular</div>
+        </div>
+    </div>
+</div>
+
+<!-- HEMOGRAMA -->
+<div class="seccion">
+    <h2>Hemograma</h2>
+    <div class="grid">
+        <div>
+            <label>Hemoglobina (g/dL): <input type="number" step="0.1" id="hemoglobina" min="3" max="25"></label>
+            <div class="info-examen">Transporte de oxígeno en sangre</div>
+        </div>
+        <div>
+            <label>Hematocrito (%): <input type="number" step="0.1" id="hematocrito" min="10" max="60"></label>
+            <div class="info-examen">Proporción de glóbulos rojos</div>
+        </div>
+        <div>
+            <label>Leucocitos (x10³/μL): <input type="number" step="0.1" id="leucocitos" min="1" max="100"></label>
+            <div class="info-examen">Células de defensa inmunológica</div>
+        </div>
+        <div>
+            <label>Plaquetas (x10³/μL): <input type="number" id="plaquetas" min="10" max="2000"></label>
+            <div class="info-examen">Coagulación sanguínea</div>
+        </div>
+        <div>
+            <label>VSG (mm/h): <input type="number" id="vsg" min="1" max="200"></label>
+            <div class="info-examen">Velocidad de sedimentación globular</div>
+        </div>
+        <div>
+            <label>VCM (fL): <input type="number" step="0.1" id="vcm" min="60" max="120"></label>
+            <div class="info-examen">Tamaño promedio de eritrocitos</div>
+        </div>
+    </div>
+</div>
+
+<!-- BIOQUÍMICA SANGUÍNEA -->
+<div class="seccion">
+    <h2>Bioquímica Sanguínea</h2>
+    <div class="grid">
+        <div>
+            <label>Glucosa (mg/dL): <input type="number" id="glucosa" min="20" max="1000"></label>
+            <div class="info-examen">Nivel de azúcar en sangre</div>
+        </div>
+        <div>
+            <label>Insulina (μU/mL): <input type="number" id="insulina" min="1" max="100"></label>
+            <div class="info-examen">Hormona reguladora de glucosa</div>
+        </div>
+        <div>
+            <label>HbA1c (%): <input type="number" step="0.1" id="hba1c" min="3" max="15"></label>
+            <div class="info-examen">Control glucémico a 3 meses</div>
+        </div>
+        <div>
+            <label>Colesterol Total (mg/dL): <input type="number" id="colesterol" min="50" max="500"></label>
+            <div class="info-examen">Suma de lipoproteínas en sangre</div>
+        </div>
+        <div>
+            <label>HDL (mg/dL): <input type="number" id="hdl" min="10" max="150"></label>
+            <div class="info-examen">Colesterol 'bueno' protector</div>
+        </div>
+        <div>
+            <label>LDL (mg/dL): <input type="number" id="ldl" min="30" max="400"></label>
+            <div class="info-examen">Colesterol 'malo' aterogénico</div>
+        </div>
+        <div>
+            <label>Triglicéridos (mg/dL): <input type="number" id="trigliceridos" min="30" max="2000"></label>
+            <div class="info-examen">Grasas circulantes en sangre</div>
+        </div>
+        <div>
+            <label>Lipoproteína A (mg/dL): <input type="number" id="lipoproteinaA" min="0" max="300"></label>
+            <div class="info-examen">Marcador de riesgo cardiovascular</div>
+        </div>
+    </div>
+</div>
+
+<!-- FUNCIÓN RENAL -->
+<div class="seccion">
+    <h2>Función Renal</h2>
+    <div class="grid">
+        <div>
+            <label>Creatinina (mg/dL): <input type="number" step="0.01" id="creatinina" min="0.1" max="10"></label>
+            <div class="info-examen">Función de filtrado glomerular</div>
+        </div>
+        <div>
+            <label>BUN (mg/dL): <input type="number" id="bun" min="1" max="100"></label>
+            <div class="info-examen">Nitrógeno ureico en sangre</div>
+        </div>
+        <div>
+            <label>Sodio (mEq/L): <input type="number" id="sodio" min="120" max="160"></label>
+            <div class="info-examen">Equilibrio electrolítico</div>
+        </div>
+        <div>
+            <label>Potasio (mEq/L): <input type="number" step="0.1" id="potasio" min="2.0" max="7.0"></label>
+            <div class="info-examen">Función neuromuscular</div>
+        </div>
+        <div>
+            <label>Calcio (mg/dL): <input type="number" step="0.1" id="calcio" min="6" max="15"></label>
+            <div class="info-examen">Metabolismo óseo</div>
+        </div>
+        <div>
+            <label>Albúmina (g/dL): <input type="number" step="0.1" id="albumina" min="2" max="6"></label>
+            <div class="info-examen">Proteína plasmática principal</div>
+        </div>
+    </div>
+</div>
+
+<!-- FUNCIÓN HEPÁTICA -->
+<div class="seccion">
+    <h2>Función Hepática</h2>
+    <div class="grid">
+        <div>
+            <label>AST (U/L): <input type="number" id="ast" min="5" max="1000"></label>
+            <div class="info-examen">Daño hepático o muscular</div>
+        </div>
+        <div>
+            <label>ALT (U/L): <input type="number" id="alt" min="5" max="1000"></label>
+            <div class="info-examen">Específica de daño hepático</div>
+        </div>
+        <div>
+            <label>GGT (U/L): <input type="number" id="ggt" min="5" max="1000"></label>
+            <div class="info-examen">Daño por alcohol o obstrucción biliar</div>
+        </div>
+        <div>
+            <label>Fosfatasa Alcalina (U/L): <input type="number" id="fosfatasa" min="20" max="500"></label>
+            <div class="info-examen">Enfermedades óseas o hepáticas</div>
+        </div>
+        <div>
+            <label>Bilirrubina Total (mg/dL): <input type="number" step="0.1" id="bilirrubina" min="0.1" max="10"></label>
+            <div class="info-examen">Metabolismo de la hemoglobina</div>
+        </div>
+    </div>
+</div>
+
+<!-- MARCADORES CARDÍACOS -->
+<div class="seccion">
+    <h2>Marcadores Cardíacos</h2>
+    <div class="grid">
+        <div>
+            <label>Troponina (ng/mL): <input type="number" step="0.01" id="troponina" min="0" max="50"></label>
+            <div class="info-examen">Daño miocárdico agudo</div>
+        </div>
+        <div>
+            <label>CK-MB (U/L): <input type="number" id="ckmb" min="0" max="100"></label>
+            <div class="info-examen">Isoenzima cardíaca específica</div>
+        </div>
+        <div>
+            <label>BNP (pg/mL): <input type="number" id="bnp" min="0" max="5000"></label>
+            <div class="info-examen">Insuficiencia cardíaca</div>
+        </div>
+        <div>
+            <label>PCR Ultrasensible (mg/L): <input type="number" step="0.1" id="pcr" min="0" max="50"></label>
+            <div class="info-examen">Inflamación cardiovascular</div>
+        </div>
+    </div>
+</div>
+
+<button onclick="generarInformeCompleto()">Generar Informe Integral</button>
+
+<!-- SECCIÓN DE INFORME -->
+<div id="informe" class="seccion" style="display: none;">
+    <h2>Informe Médico Integral Plus</h2>
+    <div class="exportar">
+        <button onclick="exportarPDF()" style="background: #e74c3c">Exportar PDF</button>
+        <button onclick="window.print()" style="background: #27ae60">Imprimir</button>
+    </div>
+    
+    <div id="resultados"></div>
+    <div id="derivados"></div>
+    <div id="enfermedades"></div>
+    <div id="alertas"></div>
+    <div id="recomendaciones"></div>
 </div>
 
 <script>
-    const bloodTypeSelector = document.getElementById('bloodType');
-    const resultDiv = document.getElementById('result');
-
-    const compatibility = {
-        'A+': { receive: ['A+', 'A-', 'O+', 'O-'], donate: ['A+', 'AB+'] },
-        'A-': { receive: ['A-', 'O-'], donate: ['A+', 'A-', 'AB+', 'AB-'] },
-        'B+': { receive: ['B+', 'B-', 'O+', 'O-'], donate: ['B+', 'AB+'] },
-        'B-': { receive: ['B-', 'O-'], donate: ['B+', 'B-', 'AB+', 'AB-'] },
-        'AB+': { receive: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'], donate: ['AB+'] },
-        'AB-': { receive: ['A-', 'B-', 'AB-', 'O-'], donate: ['AB+', 'AB-'] },
-        'O+': { receive: ['O+', 'O-'], donate: ['A+', 'B+', 'AB+', 'O+'] },
-        'O-': { receive: ['O-'], donate: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] }
-    };
-
-    bloodTypeSelector.addEventListener('change', (event) => {
-        const selectedBloodType = event.target.value;
-        if (selectedBloodType) {
-            const { receive, donate } = compatibility[selectedBloodType];
-            resultDiv.innerHTML = `
-                <p>Puedes recibir sangre de: <strong>${receive.join(', ')}</strong></p>
-                <p>Puedes donar sangre a: <strong>${donate.join(', ')}</strong></p>
-            `;
-        } else {
-            resultDiv.innerHTML = '';
+const Referencias = {
+    get: (edad, sexo) => ({
+        hemoglobina: sexo === 'M' ? [13.5, 17.5] : [12.0, 15.5],
+        hematocrito: sexo === 'M' ? [41, 53] : [36, 46],
+        leucocitos: [4.0, 10.0],
+        plaquetas: [150, 450],
+        vsg: sexo === 'M' ? [0, 15] : [0, 20],
+        glucosa: edad >= 18 ? [70, 100] : [60, 100],
+        hba1c: [4.0, 5.6],
+        colesterol: [0, 200],
+        hdl: sexo === 'M' ? [40, 60] : [50, 70],
+        ldl: [0, 130],
+        trigliceridos: [0, 150],
+        creatinina: edad >= 18 ? (sexo === 'M' ? [0.7, 1.3] : [0.6, 1.1]) : [0.3, 0.7],
+        sodio: [135, 145],
+        potasio: [3.5, 5.1],
+        ast: [10, 40],
+        alt: [7, 56],
+        troponina: [0, 0.04],
+        bnp: edad < 75 ? [0, 100] : [0, 250],
+        lipoproteinaA: [0, 30],
+        pcr: [0, 3.0]
+    }),
+    derivados: {
+        imc: [18.5, 24.9],
+        homaIR: [0, 2.5],
+        fg: [90, 120],
+        ratioASTALT: [0.8, 1.4],
+        noHDL: [0, 130],
+        riesgoCV: [0, 3]
+    },
+    enfermedades: {
+        hemoglobina: {
+            bajo: ['Anemia ferropénica', 'Leucemia', 'Enfermedad renal crónica'],
+            alto: ['Policitemia vera', 'Enfisema pulmonar', 'Deshidratación severa']
+        },
+        glucosa: {
+            alto: ['Diabetes tipo 2', 'Pancreatitis aguda', 'Síndrome de Cushing'],
+            bajo: ['Hipoglucemia reactiva', 'Insulinoma', 'Enfermedad de Addison']
+        },
+        ldl: {
+            alto: ['Hipercolesterolemia familiar', 'Aterosclerosis', 'Xantomatosis']
+        },
+        homaIR: {
+            alto: ['Síndrome metabólico', 'Hígado graso no alcohólico', 'SOP']
+        },
+        creatinina: {
+            alto: ['Insuficiencia renal aguda', 'Glomerulonefritis', 'Obstrucción urinaria'],
+            bajo: ['Distrofia muscular', 'Embarazo', 'Desnutrición proteica']
+        },
+        troponina: {
+            alto: ['Infarto agudo de miocardio', 'Miocarditis', 'Embolia pulmonar']
         }
+    }
+};
+
+const Calculos = {
+    antropometricos: (peso, altura) => ({
+        imc: peso / ((altura/100) ** 2),
+        bsa: 0.007184 * (peso**0.425) * (altura**0.725)
+    }),
+    metabolicos: (datos) => {
+        const calc = {};
+        if(datos.glucosa && datos.insulina) {
+            calc.homaIR = (datos.glucosa * datos.insulina) / 405;
+            calc.ratioColHDL = datos.ldl / datos.hdl;
+            calc.noHDL = datos.colesterol - datos.hdl;
+        }
+        return calc;
+    },
+    renales: (creatinina, edad, sexo) => {
+        const k = sexo === 'F' ? 0.7 : 0.9;
+        return 141 * Math.min(creatinina/k, 1)**-0.411 * Math.max(creatinina/k, 1)**-1.209 * 0.993**edad;
+    },
+    cardiacos: (pcr, ratioColHDL) => (pcr * ratioColHDL).toFixed(1)
+};
+
+function getClase(valor, ref) {
+    const rango = ref[1] - ref[0];
+    if(valor < ref[0] - rango*0.2 || valor > ref[1] + rango*0.2) return 'critico';
+    if(valor < ref[0] - rango*0.1 || valor > ref[1] + rango*0.1) return 'alerta';
+    return valor >= ref[0] && valor <= ref[1] ? 'normal' : 'alerta';
+}
+
+function generarAlertas(datos, calculos) {
+    const alertas = [];
+    if(datos.troponina > 0.4) alertas.push({tipo: 'Cardíaca', nivel: 'critico', mensaje: 'Troponina elevada (>0.4 ng/mL). Sospecha de daño miocárdico agudo. Urgencia médica.'});
+    if(calculos.imc >= 30) alertas.push({tipo: 'Metabólica', nivel: 'alerta', mensaje: `Obesidad (IMC ${calculos.imc.toFixed(1)}). Evaluación nutricional urgente.`});
+    if(datos.bnp > 500) alertas.push({tipo: 'Cardíaca', nivel: 'critico', mensaje: 'BNP elevado (>500 pg/mL). Posible insuficiencia cardíaca.'});
+    if(datos.potasio > 5.5) alertas.push({tipo: 'Electrolitos', nivel: 'critico', mensaje: 'Hiperpotasemia. Riesgo de arritmia cardíaca.'});
+    return alertas;
+}
+
+function detectarEnfermedades(datos, ref) {
+    const enfermedades = [];
+    
+    if(datos.hemoglobina && (datos.hemoglobina < ref.hemoglobina[0] || datos.hemoglobina > ref.hemoglobina[1])) {
+        enfermedades.push({
+            parametro: 'Hemoglobina',
+            valor: datos.hemoglobina,
+            enfermedades: datos.hemoglobina < ref.hemoglobina[0] 
+                ? Referencias.enfermedades.hemoglobina.bajo 
+                : Referencias.enfermedades.hemoglobina.alto
+        });
+    }
+    
+    if(datos.glucosa && (datos.glucosa > 126 || datos.glucosa < 70)) {
+        enfermedades.push({
+            parametro: 'Glucosa',
+            valor: datos.glucosa,
+            enfermedades: datos.glucosa > 126 
+                ? Referencias.enfermedades.glucosa.alto 
+                : Referencias.enfermedades.glucosa.bajo
+        });
+    }
+    
+    if(datos.ldl && datos.ldl > ref.ldl[1]) {
+        enfermedades.push({
+            parametro: 'LDL',
+            valor: datos.ldl,
+            enfermedades: Referencias.enfermedades.ldl.alto
+        });
+    }
+    
+    return enfermedades;
+}
+
+function crearProgreso(valor, ref) {
+    const rango = ref[1] - ref[0];
+    const posicion = ((valor - ref[0]) / rango) * 100;
+    const clase = getClase(valor, ref);
+    let color = '#27ae60';
+    
+    if(clase === 'alerta') color = '#f1c40f';
+    if(clase === 'critico') color = '#e74c3c';
+    
+    return `
+        <div class="progreso">
+            <div class="progreso-barra" style="width: ${Math.min(Math.max(posicion, 0), 100)}%; background: ${color}"></div>
+        </div>
+    `;
+}
+
+function mostrarResultados(datos, ref) {
+    let html = '<h3>📊 Resultados de Laboratorio</h3><div class="grid">';
+    const parametros = [
+        {id: 'hemoglobina', nombre: 'Hemoglobina', unidad: 'g/dL'},
+        {id: 'hematocrito', nombre: 'Hematocrito', unidad: '%'},
+        {id: 'leucocitos', nombre: 'Leucocitos', unidad: 'x10³/μL'},
+        {id: 'plaquetas', nombre: 'Plaquetas', unidad: 'x10³/μL'},
+        {id: 'glucosa', nombre: 'Glucosa', unidad: 'mg/dL'},
+        {id: 'hba1c', nombre: 'HbA1c', unidad: '%'},
+        {id: 'ldl', nombre: 'LDL', unidad: 'mg/dL'},
+        {id: 'hdl', nombre: 'HDL', unidad: 'mg/dL'},
+        {id: 'trigliceridos', nombre: 'Triglicéridos', unidad: 'mg/dL'},
+        {id: 'creatinina', nombre: 'Creatinina', unidad: 'mg/dL'},
+        {id: 'sodio', nombre: 'Sodio', unidad: 'mEq/L'},
+        {id: 'potasio', nombre: 'Potasio', unidad: 'mEq/L'},
+        {id: 'troponina', nombre: 'Troponina', unidad: 'ng/mL'},
+        {id: 'bnp', nombre: 'BNP', unidad: 'pg/mL'},
+        {id: 'pcr', nombre: 'PCR', unidad: 'mg/L'}
+    ];
+    
+    parametros.forEach(p => {
+        const valor = datos[p.id];
+        if(!valor) return;
+        const clase = getClase(valor, ref[p.id]);
+        html += `
+            <div class="resultado ${clase}">
+                <strong>${p.nombre}:</strong> ${valor.toFixed(2)} ${p.unidad}
+                ${crearProgreso(valor, ref[p.id])}
+                <div class="rango">Rango: ${ref[p.id][0]} - ${ref[p.id][1]}</div>
+            </div>`;
     });
+    document.getElementById('resultados').innerHTML = html + '</div>';
+}
+
+function mostrarDerivados(calculos) {
+    let html = '<h3>🧮 Parámetros Calculados</h3><div class="grid">';
+    const derivados = [
+        {id: 'imc', nombre: 'IMC', unidad: 'kg/m²', ref: [18.5, 24.9]},
+        {id: 'homaIR', nombre: 'HOMA-IR', unidad: '', ref: [0, 2.5]},
+        {id: 'fg', nombre: 'FG', unidad: 'mL/min/1.73m²', ref: [90, 120]},
+        {id: 'riesgoCV', nombre: 'Riesgo CV', unidad: 'puntos', ref: [0, 3]}
+    ];
+    
+    derivados.forEach(d => {
+        const valor = calculos[d.id];
+        if(!valor) return;
+        const clase = getClase(valor, d.ref);
+        html += `
+            <div class="resultado ${clase}">
+                <strong>${d.nombre}:</strong> ${valor.toFixed(2)} ${d.unidad}
+                ${crearProgreso(valor, d.ref)}
+                <div class="rango">Rango: ${d.ref[0]} - ${d.ref[1]}</div>
+            </div>`;
+    });
+    document.getElementById('derivados').innerHTML = html + '</div>';
+}
+
+function mostrarEnfermedades(enfermedades) {
+    if(enfermedades.length === 0) return;
+    let html = '<h3>🩺 Posibles Enfermedades Asociadas</h3><div class="grid">';
+    enfermedades.forEach(e => {
+        html += `
+            <div class="enfermedad">
+                <strong>${e.parametro} (${e.valor.toFixed(2)}):</strong>
+                <ul>${e.enfermedades.map(enf => `<li>${enf}</li>`).join('')}</ul>
+            </div>`;
+    });
+    document.getElementById('enfermedades').innerHTML = html + '</div>';
+}
+
+function mostrarAlertas(alertas) {
+    if(alertas.length === 0) return;
+    let html = '<h3>🚨 Alertas Clínicas Prioritarias</h3><div class="grid">';
+    alertas.forEach(a => html += `<div class="resultado ${a.nivel}"><strong>${a.tipo}:</strong> ${a.mensaje}</div>`);
+    document.getElementById('alertas').innerHTML = html + '</div>';
+}
+
+function mostrarRecomendaciones(datos, ref, calculos) {
+    let html = '<h3>📋 Recomendaciones Clínicas Detalladas</h3><ul>';
+    
+    if(calculos.imc >= 30) {
+        html += '<li>Programa de reducción de peso supervisado</li>';
+        html += '<li>Evaluación nutricional completa</li>';
+        html += '<li>Ejercicio aeróbico 150 min/semana</li>';
+    }
+    
+    if(datos.ldl > ref.ldl[1]) {
+        html += '<li>Dieta baja en grasas saturadas</li>';
+        html += '<li>Suplementación con omega-3</li>';
+        html += '<li>Considerar terapia con estatinas</li>';
+    }
+    
+    if(calculos.homaIR > 2.5) {
+        html += '<li>Prueba de tolerancia a la glucosa</li>';
+        html += '<li>Control de resistencia a insulina</li>';
+        html += '<li>Suplementación con inositol</li>';
+    }
+    
+    if(datos.potasio > 5.5) {
+        html += '<li>Restricción de potasio en dieta</li>';
+        html += '<li>Monitorización cardíaca continua</li>';
+        html += '<li>Considerar quelantes de potasio</li>';
+    }
+    
+    html += '</ul>';
+    document.getElementById('recomendaciones').innerHTML = html;
+}
+
+function exportarPDF() {
+    const element = document.getElementById('informe');
+    html2pdf().set({
+        margin: [10, 10],
+        filename: 'informe_medico.pdf',
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(element).save();
+}
+
+function generarInformeCompleto() {
+    const datos = obtenerDatosFormulario();
+    if(!validarDatos(datos)) return;
+    
+    const ref = Referencias.get(datos.edad, datos.sexo);
+    const calculos = calcularParametros(datos);
+    const alertas = generarAlertas(datos, calculos);
+    const enfermedades = detectarEnfermedades(datos, ref);
+    
+    mostrarResultados(datos, ref);
+    mostrarDerivados(calculos);
+    mostrarEnfermedades(enfermedades);
+    mostrarAlertas(alertas);
+    mostrarRecomendaciones(datos, ref, calculos);
+    
+    document.getElementById('informe').style.display = 'block';
+}
+
+function obtenerDatosFormulario() {
+    return {
+        edad: parseFloat(document.getElementById('edad').value),
+        sexo: document.getElementById('sexo').value,
+        peso: parseFloat(document.getElementById('peso').value),
+        altura: parseFloat(document.getElementById('altura').value),
+        fumador: parseInt(document.getElementById('fumador').value),
+        hemoglobina: parseFloat(document.getElementById('hemoglobina').value),
+        hematocrito: parseFloat(document.getElementById('hematocrito').value),
+        leucocitos: parseFloat(document.getElementById('leucocitos').value),
+        plaquetas: parseFloat(document.getElementById('plaquetas').value),
+        vsg: parseFloat(document.getElementById('vsg').value),
+        vcm: parseFloat(document.getElementById('vcm').value),
+        glucosa: parseFloat(document.getElementById('glucosa').value),
+        insulina: parseFloat(document.getElementById('insulina').value),
+        hba1c: parseFloat(document.getElementById('hba1c').value),
+        colesterol: parseFloat(document.getElementById('colesterol').value),
+        hdl: parseFloat(document.getElementById('hdl').value),
+        ldl: parseFloat(document.getElementById('ldl').value),
+        trigliceridos: parseFloat(document.getElementById('trigliceridos').value),
+        lipoproteinaA: parseFloat(document.getElementById('lipoproteinaA').value),
+        creatinina: parseFloat(document.getElementById('creatinina').value),
+        bun: parseFloat(document.getElementById('bun').value),
+        sodio: parseFloat(document.getElementById('sodio').value),
+        potasio: parseFloat(document.getElementById('potasio').value),
+        calcio: parseFloat(document.getElementById('calcio').value),
+        albumina: parseFloat(document.getElementById('albumina').value),
+        ast: parseFloat(document.getElementById('ast').value),
+        alt: parseFloat(document.getElementById('alt').value),
+        ggt: parseFloat(document.getElementById('ggt').value),
+        fosfatasa: parseFloat(document.getElementById('fosfatasa').value),
+        bilirrubina: parseFloat(document.getElementById('bilirrubina').value),
+        troponina: parseFloat(document.getElementById('troponina').value),
+        ckmb: parseFloat(document.getElementById('ckmb').value),
+        bnp: parseFloat(document.getElementById('bnp').value),
+        pcr: parseFloat(document.getElementById('pcr').value)
+    };
+}
+
+function validarDatos(datos) {
+    const camposRequeridos = ['edad', 'peso', 'altura'];
+    for(const campo of camposRequeridos) {
+        if(isNaN(datos[campo])) {
+            alert(`Faltan datos requeridos: ${campo}`);
+            return false;
+        }
+    }
+    return true;
+}
+
+function calcularParametros(datos) {
+    const derivados = Calculos.antropometricos(datos.peso, datos.altura);
+    Object.assign(derivados, Calculos.metabolicos(datos));
+    derivados.fg = Calculos.renales(datos.creatinina, datos.edad, datos.sexo);
+    if(datos.pcr && derivados.ratioColHDL) derivados.riesgoCV = Calculos.cardiacos(datos.pcr, derivados.ratioColHDL);
+    return derivados;
+}
 </script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 </html>
